@@ -6,13 +6,14 @@ import Home from './pages/home.jsx';
 import NosMenu from './pages/nosMenu.jsx';
 import Livraison from './pages/Livraison.jsx';
 import DeveloppementDurable from './pages/DeveloppementDurable.jsx';
-import MoyenOrient from './pages/MoyenOrient.jsx';
+import CaféSanté from './pages/CaféSanté.jsx';
 import NosSalons from './pages/NosSalons.jsx';
 import Langue from './pages/Langue.jsx';
 import APropose from './pages/APropose.jsx';
 import Contact from './pages/Contact.jsx';
 import Footer from './components/footer.jsx';
 
+import Commander from './pages/commander.jsx';
 
 import Produits from './categories/produits.jsx';
 import Boisson from './categories/boisson.jsx';
@@ -47,15 +48,18 @@ function App() {
             <Route path="/" element={<Home darkMode={darkMode} />} />
             <Route path="/livraison" element={<Livraison />} />
             <Route path="/developpement-durable" element={<DeveloppementDurable />} />
-            <Route path="/nosMenu" element={<NosMenu />} />
-            <Route path="/moyen-orient" element={<MoyenOrient />} />
+            <Route path="/nosMenu" element={<NosMenu darkMode={ darkMode }/>} />
+            <Route path="/CaféSanté" element={<CaféSanté darkMode={darkMode} />} />
             <Route path="/nos-salons" element={<NosSalons />} />
             <Route path="/langue" element={<Langue />} />
             <Route path="/a-propos" element={<APropose />} />
             <Route path="/contact" element={<Contact />} />
 
-            <Route path="/categories/1" element={<Boisson/>} />
-            <Route path="/categories/2" element={<Produits/>} />
+            <Route path="/categories/1" element={<Boisson darkMode={darkMode}/>} />
+            <Route path="/categories/2" element={<Produits darkMode={darkMode}/>} />
+
+            <Route path="/commender" element={<Commander darkMode={darkMode} />} />
+
             
           
           </Routes>
