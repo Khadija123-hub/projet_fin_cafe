@@ -1,24 +1,155 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import SacherCafe from '../../images/SacherCafe.png';
+import { Link, useNavigate } from 'react-router-dom';
 
 function Produits() {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const navigate = useNavigate();
+  const [imgError, setImgError] = useState({});
+  const [imageLoading, setImageLoading] = useState({});
+  
+
+const getImageUrl = (imageName) => {
+  if (!imageName) return '/images/placeholder.jpg';
+  try {
+    // Encodage correct du nom de fichier pour gérer les espaces et caractères spéciaux
+    const encodedName = encodeURIComponent(imageName.trim());
+    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    const url = `${baseUrl}/storage/produits/${encodedName}`;
+    
+    console.log('Image URL constructed:', url);
+    return url;
+  } catch (error) {
+    console.error('Erreur lors de la construction de l\'URL de l\'image:', error);
+    return '/images/placeholder.jpg';
+  }
+};
+
+const handleImageError = (articleId, imageName) => {
+  console.log(`Erreur de chargement pour l'image: ${imageName} (ID: ${articleId})`);
+  const url = getImageUrl(imageName);
+  console.log('URL tentée:', url);
+  
+  // Vérifier si l'image existe
+  fetch(url, { method: 'HEAD' })
+    .then(response => {
+      console.log(`Statut de l'image ${imageName}:`, response.status);
+      if (!response.ok) {
+        console.error(`Image non trouvée: ${url}`);
+      }
+    })
+    .catch(error => {
+      console.error(`Erreur lors de la vérification de l'image ${imageName}:`, error);
+    });
+
+  setImgError(prev => ({
+    ...prev,
+    [articleId]: true
+  }));
+  
+  setImageLoading(prev => ({
+    ...prev,
+    [articleId]: false
+  }));
+};
+
+const handleImageLoad = (articleId) => {
+  setImageLoading(prev => ({
+    ...prev,
+    [articleId]: false
+  }));
+};
+
+const handleImageStart = (articleId) => {
+  setImageLoading(prev => ({
+    ...prev,
+    [articleId]: true
+  }));
+};
+
+useEffect(() => {
+  if (articles.length > 0) {
+    console.log('Images des produits:', articles.map(a => ({
+      nom: a.nom,
+      image: a.image,
+      url: getImageUrl(a.image)
+    })));
+  }
+}, [articles]);
 
   useEffect(() => {
-    axios
-      .get('http://localhost:8000/api/categories/2/produits')
-      .then((response) => {
-        setArticles(response.data);
+    // Vérifier si l'utilisateur est connecté
+    const token = localStorage.getItem('token');
+    if (token) {
+      setIsAuthenticated(true);
+    }
+
+    // Configuration axios avec les headers CORS appropriés
+    const fetchProduits = async () => {
+      try {
+        const response = await axios.get('http://localhost:8000/api/categories/2/produits', {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            // Ajouter le token si disponible
+            ...(token && { 'Authorization': `Bearer ${token}` })
+          },
+          withCredentials: true
+        });
+        
+        console.log('Produits catégorie 2:', response.data);
+        setArticles(Array.isArray(response.data) ? response.data : []);
         setLoading(false);
-      })
-      .catch(() => {
-        setError('Impossible de charger les produits.');
+      } catch (error) {
+        console.error('Erreur:', error);
+        
+        // Gestion d'erreur plus détaillée
+        if (error.response) {
+          // Erreur de réponse du serveur
+          setError(`Erreur ${error.response.status}: ${error.response.data.message || 'Impossible de charger les produits.'}`);
+        } else if (error.request) {
+          // Erreur de réseau
+          setError('Erreur de connexion au serveur. Vérifiez que le serveur est en marche.');
+        } else {
+          // Autre erreur
+          setError('Une erreur inattendue s\'est produite.');
+        }
         setLoading(false);
-      });
+      }
+    };
+
+    fetchProduits();
   }, []);
+
+  // Fonction pour gérer le clic sur le bouton "commander"
+  const handleCommandeClick = (e, article) => {
+    e.preventDefault();
+    
+    if (isAuthenticated) {
+      // Si l'utilisateur est connecté, rediriger vers la page de commande
+      // Optionnel: passer les données du produit sélectionné
+      navigate('/commande', { state: { selectedProduct: article } });
+    } else {
+      // Si l'utilisateur n'est pas connecté, vérifier s'il a un compte
+      const hasAccount = window.confirm(
+        "Vous devez être connecté pour commander.\n\n" +
+        "Cliquez sur 'OK' si vous avez déjà un compte (redirection vers connexion)\n" +
+        "Cliquez sur 'Annuler' si vous n'avez pas de compte (redirection vers inscription)"
+      );
+      
+      if (hasAccount) {
+        // Rediriger vers la page de connexion
+        navigate('/login', { state: { redirectTo: '/commande', selectedProduct: article } });
+      } else {
+        // Rediriger vers la page d'inscription
+        navigate('/register', { state: { redirectTo: '/commande', selectedProduct: article } });
+      }
+    }
+  };
 
   if (loading) {
     return (
@@ -34,6 +165,12 @@ function Produits() {
       <div className="container mx-auto p-4 mt-20">
         <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg shadow-lg">
           <p className="text-red-700 font-medium font-serif">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+          >
+            Réessayer
+          </button>
         </div>
       </div>
     );
@@ -67,44 +204,93 @@ function Produits() {
           </div>
 
           {Array.isArray(articles) && articles.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-2 md:px-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-2 md:px-6">
               {articles.map((article) => (
                 <div
                   key={article.id}
-                  className="bg-white/80 backdrop-blur-sm rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 border border-amber-100 animate-fade-in max-w-sm mx-auto"
+                  className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
                 >
-                  {article.image && (
-                    <div className="relative overflow-hidden h-72">
-                      <img
-                        src={article.image}
-                        alt={article.nom}
-                        className="w-full h-full object-cover object-center transition-transform duration-500 hover:scale-105"
-                        loading="lazy"
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = 'https://via.placeholder.com/300x200/FFEDD5/7C2D12?text=Produit';
-                        }}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-amber-900/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    </div>
-                  )}
+                  {/* Container d'image avec dimensions fixes */}
+                  <div className="relative w-full h-56 overflow-hidden bg-gradient-to-br from-amber-50 to-amber-100">
+                    {article.image && !imgError[article.id] ? (
+                      <>
+                        {/* Indicateur de chargement */}
+                        {imageLoading[article.id] && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-amber-50">
+                            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-amber-600"></div>
+                          </div>
+                        )}
+                        
+                        <img
+                          src={getImageUrl(article.image)}
+                          alt={article.nom}
+                          className={`w-full h-full object-cover transition-all duration-500 hover:scale-105 ${
+                            imageLoading[article.id] ? 'opacity-0' : 'opacity-100'
+                          }`}
+                          loading="lazy"
+                          onLoadStart={() => handleImageStart(article.id)}
+                          onLoad={() => handleImageLoad(article.id)}
+                          onError={() => handleImageError(article.id, article.image)}
+                          style={{
+                            imageRendering: 'crisp-edges',
+                            WebkitImageRendering: 'crisp-edges'
+                          }}
+                        />
+                        
+                    
+                      </>
+                    ) : (
+                      // Placeholder pour image manquante
+                      <div className="w-full h-full flex items-center justify-center">
+                        <div className="text-center">
+                          <svg
+                            className="w-12 h-12 mx-auto text-amber-400 mb-2"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={1.5}
+                              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                            />
+                          </svg>
+                          <p className="text-amber-600 font-serif text-xs">
+                            Image non disponible
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Contenu de la carte */}
                   <div className="p-4">
-                    <div className="flex justify-between items-center mb-2">
-                      <h3 className="font-bold text-lg text-amber-900 font-serif">{article.nom}</h3>
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="font-bold text-lg text-amber-900 font-serif leading-tight flex-1 mr-2">
+                        {article.nom}
+                      </h3>
                       {article.prix && (
-                        <span className="text-sm font-semibold text-amber-700 bg-amber-100 px-2 py-1 rounded-full">
+                        <span className="text-sm font-bold text-amber-700 bg-amber-100 px-3 py-1 rounded-full whitespace-nowrap">
                           {article.prix} MAD
                         </span>
                       )}
                     </div>
-                    <div className="h-px w-full bg-gradient-to-r from-amber-200 to-amber-400 mb-2"></div>
+                    
+                    <div className="h-px w-full bg-gradient-to-r from-amber-200 to-amber-400 mb-3"></div>
+                    
                     {article.description && (
-                      <p className="text-sm text-amber-800 italic font-serif line-clamp-3">
+                      <p className="text-sm text-amber-800 italic font-serif line-clamp-2 mb-4 leading-relaxed">
                         {article.description}
                       </p>
                     )}
-                    <button className="mt-4 w-full bg-amber-600 hover:bg-amber-700 text-white py-2 px-4 rounded-full font-semibold transition-all duration-300">
-                      Voir plus
+                    
+                    <button
+                      onClick={(e) => handleCommandeClick(e, article)}
+                      className="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white py-2.5 px-4 rounded-full font-semibold transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg"
+                    >
+                      Commander
                     </button>
                   </div>
                 </div>

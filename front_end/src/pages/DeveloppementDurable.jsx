@@ -242,7 +242,7 @@ export default function DeveloppementDurable({ darkMode }) {
         >
           Découvrez nos boissons artisanales et contribuez à un monde plus vert. Commandez maintenant et goûtez la différence.
         </motion.p>
-        <Link to="/commander">
+        <Link to="/commande">
           <motion.button
             className={`py-2 px-6 rounded-full font-semibold transition-all ${buttonStyle}`}
             whileHover={{ scale: 1.05 }}

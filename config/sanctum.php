@@ -20,6 +20,10 @@ return [
         env('FRONTEND_URL') ? ','.parse_url(env('FRONTEND_URL'), PHP_URL_HOST) : ''
     ))),
 
+
+    
+    
+
     /*
     |--------------------------------------------------------------------------
     | Sanctum Guards

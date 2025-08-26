@@ -5,6 +5,8 @@ function CaféSanté({ darkMode }) {
   const [activeTab, setActiveTab] = useState('bienfaits');
   const [showModal, setShowModal] = useState(false);
   const [selectedBienfait, setSelectedBienfait] = useState(null);
+   const [email, setEmail] = useState('');
+    const [question, setQuestion] = useState('');
 
 
   useEffect(() => {
@@ -13,7 +15,36 @@ function CaféSanté({ darkMode }) {
     }, 800);
     return () => clearTimeout(timer);
   }, []);
+ const sendToWhatsApp = () => {
+  if (!question.trim()) {
+    alert('Veuillez saisir votre question');
+    return { success: false, error: "Question vide" };
+  }
 
+  const currentDate = new Date().toLocaleString('fr-FR');
+  
+  const message = `☕ *Question Café Santé* (${currentDate})
+  
+━━━━━━━━━━━━━━━
+📧 *Contact:* ${email || 'Non précisé'}
+💬 *Question:*
+${question}
+━━━━━━━━━━━━━━━
+_Envoyé via l'application Café & Santé_`;
+
+  const phoneNumber = '212611689213'; // +212 pour le Maroc
+  const encodedMessage = encodeURIComponent(message);
+  const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+  
+  // Alternative pour ouvrir dans un nouvel onglet
+  const newWindow = window.open(whatsappUrl, '_blank');
+  if (!newWindow) {
+    alert("Veuillez autoriser les pop-ups pour cette action");
+    return { success: false, error: "Popup bloqué" };
+  }
+  
+  return { success: true };
+};
   const bienfaits = [
     {
       id: 1,
@@ -35,7 +66,7 @@ function CaféSanté({ darkMode }) {
         "Amélioration de l'humeur et réduction du risque de dépression",
         "Protection potentielle contre les maladies neurodégénératives comme Alzheimer et Parkinson"
       ],
-      image: "/api/placeholder/300/200"
+      image: "/images/img2Cafe&Sante.jpg"
     },
     {
       id: 3,
@@ -46,7 +77,7 @@ function CaféSanté({ darkMode }) {
         "Améliorer les performances sportives grâce à la libération d'acides gras dans le sang",
         "Réduire le risque de diabète de type 2 (jusqu'à 30% selon certaines études)"
       ],
-      image: "/api/placeholder/300/200"
+      image: "/images/img3Cafe&Sante.jpg"
     },
     {
       id: 4,
@@ -57,7 +88,7 @@ function CaféSanté({ darkMode }) {
         "Protection contre certaines maladies du foie",
         "Diminution des enzymes hépatiques associées aux inflammations"
       ],
-      image: "/api/placeholder/300/200"
+      image: "/images/Image5sante.jpg"
     },
     {
       id: 5,
@@ -68,7 +99,7 @@ function CaféSanté({ darkMode }) {
         "Réduction légère du risque de maladies cardiovasculaires",
         "Propriétés anti-inflammatoires bénéfiques pour les vaisseaux sanguins"
       ],
-      image: "/api/placeholder/300/200"
+      image: "/images/4imagesSante.jpg"
     }
   ];
 
@@ -84,32 +115,7 @@ function CaféSanté({ darkMode }) {
     ]
   };
 
-  const recettes = [
-    {
-      id: 1,
-      nom: "Café glacé au miel et cardamome",
-      ingredients: ["250ml de café fort refroidi", "2 cuillères à café de miel", "1/4 cuillère à café de cardamome moulue", "Glaçons", "Lait ou alternative végétale (optionnel)"],
-      preparation: "1. Préparez un café fort et laissez-le refroidir\n2. Ajoutez le miel et la cardamome, et mélangez bien\n3. Remplissez un verre de glaçons et versez le mélange\n4. Ajoutez du lait selon votre goût",
-      temps: "10 minutes",
-      difficulte: "Facile"
-    },
-    {
-      id: 2,
-      nom: "Mocha maison",
-      ingredients: ["60ml d'espresso ou café fort", "2 cuillères à café de cacao non sucré", "1 cuillère à café de sucre", "200ml de lait", "Chantilly (optionnel)"],
-      preparation: "1. Mélangez le cacao et le sucre dans une tasse\n2. Préparez l'espresso et versez-le sur le mélange en remuant\n3. Faites chauffer et mousser le lait\n4. Versez délicatement le lait sur le café\n5. Garnissez de chantilly si désiré",
-      temps: "15 minutes",
-      difficulte: "Moyenne"
-    },
-    {
-      id: 3,
-      nom: "Café curcuma et cannelle",
-      ingredients: ["200ml de café chaud", "1/4 cuillère à café de curcuma", "1/4 cuillère à café de cannelle", "Une pincée de poivre noir", "1 cuillère à café de miel ou sirop d'agave"],
-      preparation: "1. Préparez votre café comme d'habitude\n2. Ajoutez le curcuma, la cannelle et le poivre\n3. Incorporez le miel ou le sirop d'agave\n4. Remuez bien pour mélanger les épices",
-      temps: "5 minutes",
-      difficulte: "Facile"
-    }
-  ];
+ 
 
   const faqs = [
     {
@@ -188,14 +194,7 @@ function CaféSanté({ darkMode }) {
             >
               Conseils
             </button>
-            <button 
-              onClick={() => setActiveTab('recettes')} 
-              className={`px-3 py-2 rounded-lg transition-colors duration-200 ${activeTab === 'recettes' 
-                ? (darkMode ? 'bg-amber-800 text-amber-100' : 'bg-amber-100 text-amber-900') 
-                : (darkMode ? 'text-amber-200 hover:bg-amber-700' : 'text-white hover:bg-amber-600')}`}
-            >
-              Recettes
-            </button>
+         
             <button 
               onClick={() => setActiveTab('faq')} 
               className={`px-3 py-2 rounded-lg transition-colors duration-200 ${activeTab === 'faq' 
@@ -246,6 +245,16 @@ function CaféSanté({ darkMode }) {
                 </div>
               ))}
             </div>
+
+{/*recette*/}
+
+
+
+ 
+
+
+
+
 
             {/* Fun Fact Section */}
             <div className={`mt-16 rounded-xl p-6 flex items-start ${darkMode ? 'bg-gray-800' : 'bg-amber-100'}`}>
@@ -359,139 +368,86 @@ function CaféSanté({ darkMode }) {
           </section>
         )}
 
-        {/* Recettes Section */}
-        {activeTab === 'recettes' && (
-          <section>
-            <h2 className={`text-3xl font-bold font-serif text-center mb-8 ${darkMode ? 'text-amber-300' : 'text-amber-900'}`}>
-              Recettes de Café
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {recettes.map((recette) => (
-                <div 
-                  key={recette.id} 
-                  className={`rounded-xl overflow-hidden transition-all duration-300 ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg`}
-                >
-                  <div className={`p-4 ${darkMode ? 'bg-amber-800' : 'bg-amber-100'}`}>
-                    <h3 className={`text-xl font-semibold font-serif ${darkMode ? 'text-amber-100' : 'text-amber-900'}`}>{recette.nom}</h3>
-                    <div className="flex items-center mt-2">
-                      <span className={`text-sm ${darkMode ? 'text-amber-200' : 'text-amber-700'} mr-4`}>
-                        <svg className="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"></path>
-                        </svg>
-                        {recette.temps}
-                      </span>
-                      <span className={`text-sm ${darkMode ? 'text-amber-200' : 'text-amber-700'}`}>
-                        <svg className="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1a1 1 0 01-1 1h-5.07z"></path>
-                        </svg>
-                        {recette.difficulte}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="p-6">
-                    <div className="mb-4">
-                      <p className={`font-medium mb-2 ${darkMode ? 'text-amber-300' : 'text-amber-900'}`}>Ingrédients:</p>
-                      <ul className={`list-disc pl-5 ${darkMode ? 'text-amber-100' : 'text-amber-800'}`}>
-                        {recette.ingredients.map((ingredient, index) => (
-                          <li key={index} className="mb-1">{ingredient}</li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div>
-                      <p className={`font-medium mb-2 ${darkMode ? 'text-amber-300' : 'text-amber-900'}`}>Préparation:</p>
-                      <p className={`whitespace-pre-line ${darkMode ? 'text-amber-100' : 'text-amber-800'}`}>{recette.preparation}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className={`mt-12 p-6 rounded-xl ${darkMode ? 'bg-gray-800' : 'bg-amber-50'} shadow-lg`}>
-              <h3 className={`text-xl font-semibold font-serif mb-4 ${darkMode ? 'text-amber-300' : 'text-amber-900'}`}>
-                Conseils pour un café parfait
-              </h3>
-              <ul className="space-y-3">
-                <li className="flex items-start">
-                  <svg className={`w-5 h-5 mr-2 mt-1 ${darkMode ? 'text-amber-400' : 'text-amber-600'}`} fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
-                  </svg>
-                  <p className={darkMode ? 'text-amber-100' : 'text-amber-800'}>Utilisez de l'eau filtrée pour préserver les arômes subtils du café.</p>
-                </li>
-                <li className="flex items-start">
-                  <svg className={`w-5 h-5 mr-2 mt-1 ${darkMode ? 'text-amber-400' : 'text-amber-600'}`} fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
-                  </svg>
-                  <p className={darkMode ? 'text-amber-100' : 'text-amber-800'}>Conservez vos grains de café dans un contenant hermétique, à l'abri de la lumière et de l'humidité.</p>
-                </li>
-                <li className="flex items-start">
-                  <svg className={`w-5 h-5 mr-2 mt-1 ${darkMode ? 'text-amber-400' : 'text-amber-600'}`} fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
-                  </svg>
-                  <p className={darkMode ? 'text-amber-100' : 'text-amber-800'}>Utilisez un moulin à café juste avant la préparation pour préserver les arômes.</p>
-                </li>
-                <li className="flex items-start">
-                  <svg className={`w-5 h-5 mr-2 mt-1 ${darkMode ? 'text-amber-400' : 'text-amber-600'}`} fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
-                  </svg>
-                  <p className={darkMode ? 'text-amber-100' : 'text-amber-800'}>La température idéale de l'eau pour l'extraction est entre 90°C et 96°C (pas d'eau bouillante).</p>
-                </li>
-              </ul>
-            </div>
-          </section>
-        )}
-
-        {/* FAQ Section */}
+       {/* FAQ Section */}
         {activeTab === 'faq' && (
           <section>
-            <h2 className={`text-3xl font-bold font-serif text-center mb-8 ${darkMode ? 'text-amber-300' : 'text-amber-900'}`}>
-              Questions Fréquentes
-            </h2>
-            <div className="space-y-6">
-              {faqs.map((faq, index) => (
-                <div 
-                  key={index} 
-                  className={`rounded-xl overflow-hidden shadow-lg ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
-                >
-                  <div className={`p-6 ${darkMode ? 'border-b border-gray-700' : 'border-b'}`}>
-                    <h3 className={`text-xl font-medium font-serif ${darkMode ? 'text-amber-300' : 'text-amber-900'}`}>
-                      {faq.question}
-                    </h3>
-                  </div>
-                  <div className="p-6">
-                    <p className={darkMode ? 'text-amber-100' : 'text-amber-800'}>
-                      {faq.reponse}
-                    </p>
-                  </div>
+          <h2 className={`text-3xl font-bold font-serif text-center mb-8 ${darkMode ? 'text-amber-300' : 'text-amber-900'}`}>
+            Questions Fréquentes
+          </h2>
+          
+          <div className="space-y-6 mb-12">
+            {faqs.map((faq, index) => (
+              <div
+                key={index}
+                className={`rounded-xl overflow-hidden shadow-lg ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
+              >
+                <div className={`p-6 ${darkMode ? 'border-b border-gray-700' : 'border-b'}`}>
+                  <h3 className={`text-xl font-medium font-serif ${darkMode ? 'text-amber-300' : 'text-amber-900'}`}>
+                    {faq.question}
+                  </h3>
                 </div>
-              ))}
-            </div>
-
-            <div className={`mt-12 p-6 rounded-xl ${darkMode ? 'bg-amber-900/30' : 'bg-amber-50'}`}>
-              <h3 className={`text-xl font-semibold font-serif mb-4 ${darkMode ? 'text-amber-300' : 'text-amber-900'}`}>
-                Vous avez d'autres questions ?
-              </h3>
-              <div className="flex flex-col md:flex-row gap-4">
-                <input 
-                  type="email" 
-                  placeholder="Votre adresse email" 
-                  className={`w-full md:w-1/2 p-3 rounded-lg ${darkMode ? 'bg-gray-800 text-amber-100 placeholder-amber-400/60' : 'bg-white text-amber-900 placeholder-amber-500/60'} border ${darkMode ? 'border-gray-700' : 'border-amber-200'}`} 
-                />
-                <input 
-                  type="text" 
-                  placeholder="Votre question" 
-                  className={`w-full md:w-1/2 p-3 rounded-lg ${darkMode ? 'bg-gray-800 text-amber-100 placeholder-amber-400/60' : 'bg-white text-amber-900 placeholder-amber-500/60'} border ${darkMode ? 'border-gray-700' : 'border-amber-200'}`} 
-                />
-                <button 
-                  className={`px-6 py-3 rounded-lg font-medium ${darkMode ? 'bg-amber-600 text-white hover:bg-amber-500' : 'bg-amber-700 text-white hover:bg-amber-600'} transition-colors duration-200`}
-                >
-                  Envoyer
-                </button>
+                <div className="p-6">
+                  <p className={darkMode ? 'text-amber-100' : 'text-amber-800'}>
+                    {faq.reponse}
+                  </p>
+                </div>
               </div>
-              <p className={`mt-4 text-sm ${darkMode ? 'text-amber-400/80' : 'text-amber-700/80'}`}>
-                Nous vous répondrons dans les meilleurs délais.
-              </p>
+            ))}
+          </div>
+
+          <div className={`p-6 rounded-xl ${darkMode ? 'bg-amber-900/30' : 'bg-amber-50'}`}>
+            <h3 className={`text-xl font-semibold font-serif mb-4 ${darkMode ? 'text-amber-300' : 'text-amber-900'}`}>
+              Vous avez d'autres questions ?
+            </h3>
+            
+            <div className="flex flex-col gap-4">
+              <input
+                type="email"
+                placeholder="Votre adresse email (optionnel)"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className={`w-full p-3 rounded-lg ${
+                  darkMode 
+                    ? 'bg-gray-800 text-amber-100 placeholder-amber-400/60' 
+                    : 'bg-white text-amber-900 placeholder-amber-500/60'
+                } border ${darkMode ? 'border-gray-700' : 'border-amber-200'}`}
+              />
+              
+              <textarea
+                placeholder="Votre question..."
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                rows={4}
+                className={`w-full p-3 rounded-lg ${
+                  darkMode 
+                    ? 'bg-gray-800 text-amber-100 placeholder-amber-400/60' 
+                    : 'bg-white text-amber-900 placeholder-amber-500/60'
+                } border ${darkMode ? 'border-gray-700' : 'border-amber-200'} resize-none`}
+              />
+              
+              <button
+  onClick={() => {
+    const result = sendToWhatsApp();
+    if (result.success) {
+      setQuestion(''); // Reset le champ après envoi
+    }
+  }}
+  className={`self-start px-8 py-3 rounded-lg font-medium ${
+    darkMode 
+      ? 'bg-green-600 text-white hover:bg-green-500' 
+      : 'bg-green-700 text-white hover:bg-green-600'
+  } transition-colors duration-200 flex items-center gap-2`}
+>
+  <span>📱</span>
+  Envoyer via WhatsApp
+</button>
             </div>
-          </section>
+            
+            <p className={`mt-4 text-sm ${darkMode ? 'text-amber-400/80' : 'text-amber-700/80'}`}>
+              Votre message sera envoyé directement sur WhatsApp. Nous vous répondrons rapidement !
+            </p>
+          </div>
+        </section>
         )}
       </main>
 

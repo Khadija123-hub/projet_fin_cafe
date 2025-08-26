@@ -1,9 +1,15 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { Coffee, Instagram, Facebook, Twitter, Mail, Phone, MapPin } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 
 const Footer = ({ darkMode }) => {
+
+  const navigate = useNavigate();
+  const handleRegistre = () => {
+    navigate('/register');
+  }
   const currentYear = new Date().getFullYear();
   
   return (
@@ -68,21 +74,11 @@ const Footer = ({ darkMode }) => {
             <ul className="space-y-2">
               <li className="flex items-center text-sm">
                 <MapPin className="h-4 w-4 mr-2" />
-                <span>Paris - 25 rue de la Paix</span>
+                <span>Casablanca - salmai 2</span>
               </li>
-              <li className="flex items-center text-sm">
-                <MapPin className="h-4 w-4 mr-2" />
-                <span>Lyon - 12 place Bellecour</span>
-              </li>
-              <li className="flex items-center text-sm">
-                <MapPin className="h-4 w-4 mr-2" />
-                <span>Marseille - 45 rue Paradis</span>
-              </li>
-              <li className="flex items-center text-sm">
-                <NavLink to="/nos-salons" className={`mt-2 inline-flex items-center ${darkMode ? 'text-orange-400' : 'text-orange-300'}`}>
-                  Voir tous nos salons
-                </NavLink>
-              </li>
+             
+              
+             
             </ul>
           </div>
 
@@ -92,7 +88,7 @@ const Footer = ({ darkMode }) => {
             <ul className="space-y-2">
               <li className="flex items-center text-sm">
                 <Phone className="h-4 w-4 mr-2" />
-                <span>+33 1 23 45 67 89</span>
+                <span>+212 6 88 22 99 00</span>
               </li>
               <li className="flex items-center text-sm">
                 <Mail className="h-4 w-4 mr-2" />
@@ -123,6 +119,7 @@ const Footer = ({ darkMode }) => {
               <button 
                 type="submit" 
                 className={`px-4 py-2 rounded-r ${darkMode ? 'bg-orange-600 hover:bg-orange-700 text-white' : 'bg-orange-700 hover:bg-orange-800 text-white'}`}
+                onClick={handleRegistre}
               >
                 S'inscrire
               </button>

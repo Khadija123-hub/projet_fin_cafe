@@ -512,12 +512,12 @@ const Home = ({ darkMode }) => {
               transition={{ duration: 1 }}
               className="mb-8"
             >
-              <h1 className="text-3xl md:text-6xl font-bold text-white ml-2 mb-6">
+              <h1 className="text-xl md:text-6xl font-bold text-white ml-2 mb-6">
              Plongez dans une expérience sensorielle unique avec <br/>
              <span className="text-orange-400">قهوتي</span>
               <br /> où chaque tasse raconte l'héritage 
               </h1>
-<p className="text-xl text-gray-200 max-w-2xl mx-auto">
+<p className="text-l text-gray-200 max-w-2xl mx-auto">
 Laissez-vous envoûter par nos arômes profonds et nos saveurs envoûtantes, soigneusement préparés pour éveiller vos sens et vous transporter vers les terres mystérieuses des cafés d'exception
 </p>
             </motion.div>
@@ -583,7 +583,7 @@ C’est le rêve d’un lieu où chaque arôme raconte une culture, chaque saveu
               Bienvenue dans l’univers de <strong>قهوتي</strong> , là où chaque détail compte, et où chaque gorgée raconte une histoire.
               </p>
 
-              <Link to="/a-propos" className="inline-flex items-center text-lg font-medium group">
+              <Link to="#" className="inline-flex items-center text-lg font-medium group">
                 <span className={colorScheme.textAccent}>Découvrir notre histoire</span>
                 <ArrowRight className={`ml-2 transform group-hover:translate-x-2 transition-transform ${colorScheme.textAccent}`} />
               </Link>
@@ -693,7 +693,7 @@ C’est le rêve d’un lieu où chaque arôme raconte une culture, chaque saveu
             Anticipez votre moment café en toute simplicité. Choisissez vos produits ou boissons préférés et venez les récupérer sans attendre.
             </p>
             <Link
-              to="/commander"
+              to="/commande"
               className="inline-flex items-center px-6 py-3 rounded-full bg-orange-500 text-white font-medium hover:bg-orange-600 transition-all transform hover:scale-105 shadow-lg"
             >
               <Coffee className="mr-2 h-5 w-5" />

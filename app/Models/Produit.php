@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Categorie;
+use App\Models\Panier;
 
 class Produit extends Model
 {
@@ -20,8 +22,10 @@ class Produit extends Model
     }
     
     // Relation: un produit peut apparaître dans plusieurs détails de commande
-    public function detailsCommandes()
-    {
-        return $this->hasMany(DetailsCommande::class, 'produit_id');
-    }
+    
+public function paniers()
+{
+    return $this->hasMany(Panier::class);
+}
+   
 }

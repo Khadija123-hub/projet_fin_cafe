@@ -1,26 +1,135 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import SacherCafe from '../../images/image2_cafe.jpg';
+import { Link, useNavigate } from 'react-router-dom';
 
 function Boisson() {
   const [boissons, setBoissons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const navigate = useNavigate();
+   const [imgError, setImgError] = useState({});
+  
+
+const getImageUrl = (imageName) => {
+  if (!imageName) return '/images/placeholder.jpg';
+  try {
+    // Encodage correct du nom de fichier pour gérer les espaces et caractères spéciaux
+    const encodedName = encodeURIComponent(imageName.trim());
+    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    const url = `${baseUrl}/storage/produits/${encodedName}`;
+    
+    console.log('Image URL constructed:', url);
+    return url;
+  } catch (error) {
+    console.error('Erreur lors de la construction de l\'URL de l\'image:', error);
+    return '/images/placeholder.jpg';
+  }
+};
+
+const handleImageError = (boissonId, imageName) => {
+  console.log(`Erreur de chargement pour l'image: ${imageName} (ID: ${boissonId})`);
+  const url = getImageUrl(imageName);
+  console.log('URL tentée:', url);
+  
+  // Vérifier si l'image existe
+  fetch(url, { method: 'HEAD' })
+    .then(response => {
+      console.log(`Statut de l'image ${imageName}:`, response.status);
+      if (!response.ok) {
+        console.error(`Image non trouvée: ${url}`);
+      }
+    })
+    .catch(error => {
+      console.error(`Erreur lors de la vérification de l'image ${imageName}:`, error);
+    });
+
+  setImgError(prev => ({
+    ...prev,
+    [boissonId]: true
+  }));
+};
+
+useEffect(() => {
+  if (boissons.length > 0) {
+    console.log('Images des boissons:', boissons.map(b => ({
+      nom: b.nom,
+      image: b.image,
+      url: getImageUrl(b.image)
+    })));
+  }
+}, [boissons]);
 
   useEffect(() => {
-    axios
-      .get('http://localhost:8000/api/categories/1/produits')
-      .then((response) => {
+    // Vérifier si l'utilisateur est connecté
+    const token = localStorage.getItem('token');
+    if (token) {
+      setIsAuthenticated(true);
+    }
+
+    // Configuration axios avec les headers CORS appropriés
+    const fetchBoissons = async () => {
+      try {
+        const response = await axios.get('http://localhost:8000/api/categories/1/produits', {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            // Ajouter le token si disponible
+            ...(token && { 'Authorization': `Bearer ${token}` })
+          },
+          withCredentials: true
+        });
+        
         console.log('Boissons catégorie 1:', response.data);
-        setBoissons(response.data);
+        setBoissons(Array.isArray(response.data) ? response.data : []);
         setLoading(false);
-      })
-      .catch((error) => {
+      } catch (error) {
         console.error('Erreur:', error);
-        setError('Impossible de charger les boissons.');
+        
+        // Gestion d'erreur plus détaillée
+        if (error.response) {
+          // Erreur de réponse du serveur
+          setError(`Erreur ${error.response.status}: ${error.response.data.message || 'Impossible de charger les boissons.'}`);
+        } else if (error.request) {
+          // Erreur de réseau
+          setError('Erreur de connexion au serveur. Vérifiez que le serveur est en marche.');
+        } else {
+          // Autre erreur
+          setError('Une erreur inattendue s\'est produite.');
+        }
         setLoading(false);
-      });
+      }
+    };
+
+    fetchBoissons();
   }, []);
+
+  // Fonction pour gérer le clic sur le bouton "commander"
+  const handleCommandeClick = (e, boisson) => {
+    e.preventDefault();
+    
+    if (isAuthenticated) {
+      // Si l'utilisateur est connecté, rediriger vers la page de commande
+      // Optionnel: passer les données du produit sélectionné
+      navigate('/commande', { state: { selectedProduct: boisson } });
+    } else {
+      // Si l'utilisateur n'est pas connecté, vérifier s'il a un compte
+      const hasAccount = window.confirm(
+        "Vous devez être connecté pour commander.\n\n" +
+        "Cliquez sur 'OK' si vous avez déjà un compte (redirection vers connexion)\n" +
+        "Cliquez sur 'Annuler' si vous n'avez pas de compte (redirection vers inscription)"
+      );
+      
+      if (hasAccount) {
+        // Rediriger vers la page de connexion
+        navigate('/login', { state: { redirectTo: '/commande', selectedProduct: boisson } });
+      } else {
+        // Rediriger vers la page d'inscription
+        navigate('/register', { state: { redirectTo: '/commande', selectedProduct: boisson } });
+      }
+    }
+  };
 
   if (loading) {
     return (
@@ -36,6 +145,12 @@ function Boisson() {
       <div className="container mx-auto p-4 mt-20">
         <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg shadow-lg">
           <p className="text-red-700 font-medium font-serif">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+          >
+            Réessayer
+          </button>
         </div>
       </div>
     );
@@ -68,76 +183,79 @@ function Boisson() {
             </p>
           </div>
 
-          {Array.isArray(boissons) && boissons.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-2 md:px-6">
-              {boissons.map((boisson) => (
-                <div
-                  key={boisson.id}
-                  className="bg-white/80 backdrop-blur-sm rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 border border-amber-100 animate-fade-in max-w-sm mx-auto"
-                >
-                  {boisson.image && (
-                    <div className="relative overflow-hidden h-64 group">
-                      <img
-                        src={boisson.image}
-                        alt={boisson.nom}
-                        className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
-                        loading="lazy"
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = 'https://via.placeholder.com/300x200/FFEDD5/7C2D12?text=Boisson';
-                        }}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-amber-900/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    </div>
-                  )}
-                  <div className="p-4">
-                    <div className="flex justify-between items-center mb-2">
-                      <h3 className="font-bold text-lg text-amber-900 font-serif">{boisson.nom}</h3>
-                      {boisson.prix && (
-                        <span className="text-sm font-semibold text-amber-700 bg-amber-100 px-2 py-1 rounded-full">
-                          {boisson.prix} DH
-                        </span>
-                      )}
-                    </div>
-                    <div className="h-px w-full bg-gradient-to-r from-amber-200 to-amber-400 mb-2"></div>
-                    {boisson.description && (
-                      <p className="text-sm text-amber-800 italic font-serif line-clamp-3">
-                        {boisson.description}
-                      </p>
-                    )}
-                    <button
-                      className="mt-4 w-full bg-amber-600 hover:bg-amber-700 text-white py-2 px-4 rounded-full font-semibold transition-all duration-300"
-                      aria-label={`Ajouter ${boisson.nom} au panier`}
-                      onClick={(e) => {
-                        e.stopPropagation(); // Empêche le déclenchement du onClick du parent
-                      }}
-                    >
-                      Ajouter au panier
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-16 bg-white/80 backdrop-blur-sm rounded-lg shadow-md">
+        {Array.isArray(boissons) && boissons.length > 0 ? (
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-2 md:px-6 ml-28">
+    {boissons.map((boisson) => (
+      <div key={boisson.id} className="bg-white rounded-lg shadow-lg overflow-hidden w-96">
+        {boisson.image && !imgError[boisson.id] ? (
+     <div className="relative overflow-hidden group">
+     <img
+              src={getImageUrl(boisson.image)}
+              alt={boisson.nom}
+              className="w-full h-full object-contain object-center transition-transform duration-300 group-hover:scale-102 bg-white"
+              loading="lazy"
+              onError={() => handleImageError(boisson.id, boisson.image)}
+            />
+            {/* Gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-amber-900/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          </div>
+        ) : (
+          <div className="relative overflow-hidden h-64 group bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center">
+            <div className="text-center">
               <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-16 w-16 mx-auto text-amber-400 mb-4"
+                className="w-16 h-16 mx-auto text-amber-600 mb-2"
                 fill="none"
-                viewBox="0 0 24 24"
                 stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
               >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
                 />
               </svg>
-              <p className="text-xl text-amber-800 font-medium font-serif">Aucune boisson disponible pour le moment.</p>
-              <p className="text-amber-700 mt-2 italic text-sm">Nos baristas préparent de nouvelles créations. Revenez bientôt.</p>
+              <p className="text-amber-800 font-serif text-sm">
+                {boisson.nom || 'Boisson'}
+              </p>
             </div>
-          )}
+          </div>
+        )}
+        {/* Add boisson details */}
+        <div className="p-4">
+
+
+
+        <div className="flex justify-between items-center mb-2">
+                      <h3 className="font-bold text-lg text-amber-900 font-serif">{boisson.nom}</h3>
+                      {boisson.prix && (
+                        <div className="text-sm font-semibold text-amber-700 bg-amber-100 px-7 py-2 rounded-full">
+                          {boisson.prix} DH
+                        </div>
+                      )}</div>
+                      <div className="h-px w-full bg-gradient-to-r from-amber-200 to-amber-400 mb-2"></div>
+                      <br/>
+                      <br/>
+
+
+          <p className="text-sm text-amber-800 italic font-serif line-clamp-3">
+                        {boisson.description}</p>
+          <button
+            onClick={(e) => handleCommandeClick(e, boisson)}
+            className="mt-2 px-4 py-2 bg-amber-600 text-white rounded hover:bg-amber-700 transition-colors"
+          >
+            Commander
+          </button>
+        </div>
+      </div>
+    ))}
+  </div>
+) : (
+  <div className="text-center text-amber-800 py-8">
+    Aucune boisson disponible pour le moment.
+  </div>
+)}
         </div>
       </div>
     </div>

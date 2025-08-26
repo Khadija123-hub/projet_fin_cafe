@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Categorie;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 class CategorieController extends Controller
 {
@@ -14,9 +16,19 @@ class CategorieController extends Controller
      */
     public function index()
     {
-        $categories = Categorie::all();
-        
-        return response()->json($categories);
+        try {
+            $categories = Categorie::with('produits')->get();
+            Log::info('Categories loaded:', ['count' => $categories->count()]);
+            
+            if ($categories->isEmpty()) {
+                Log::warning('No categories found in database');
+            }
+            
+            return response()->json($categories);
+        } catch (\Exception $e) {
+            Log::error('Error loading categories:', ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'Unable to load categories'], 500);
+        }
     }
     
     /**
@@ -25,15 +37,23 @@ class CategorieController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function getProduitsByCategorie($id)
+     public function getProduitsByCategorie($id)
     {
-        $categorie = Categorie::findOrFail($id);
-        $produits = $categorie->produits; // Ceci suppose que vous avez défini la relation dans le modèle
-        
-        return response()->json([
-            'categorie' => $categorie->nom,
-            'produits' => $produits
-        ]);
+        try {
+            $categorie = Categorie::with('produits')->findOrFail($id);
+            Log::info('Products loaded for category:', [
+                'category_id' => $id,
+                'products_count' => $categorie->produits->count()
+            ]);
+            
+            return response()->json([
+                'categorie' => $categorie->nom,
+                'produits' => $categorie->produits
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error loading category products:', ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'Category not found'], 404);
+        }
     }
     
     // Autres méthodes du contrôleur...

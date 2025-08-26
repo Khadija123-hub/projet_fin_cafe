@@ -11,9 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('livraisons', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+        Schema::table('livraisons', function (Blueprint $table) {
+            $table->text('note')->nullable()->after('date_livraison');
         });
     }
 
@@ -22,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('livraisons');
+        Schema::table('livraisons', function (Blueprint $table) {
+            $table->dropColumn('note');
+        });
     }
 };

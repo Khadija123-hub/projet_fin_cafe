@@ -8,11 +8,23 @@ use Illuminate\Database\Eloquent\Model;
 class Client extends Model
 {
     use HasFactory;
-    
+
     protected $table = 'clients';
-    protected $fillable = ['nom', 'email', 'telephone', 'adresse'];
-    
-    // Relation avec les commandes
+
+    // Ajoute 'user_id' pour lier ce client à un utilisateur
+    protected $fillable = ['nom', 'email', 'telephone', 'adresse', 'user_id'];
+
+    /**
+     * 🔁 Relation : ce client appartient à un utilisateur (User)
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * 🔁 Relation : un client peut avoir plusieurs commandes
+     */
     public function commandes()
     {
         return $this->hasMany(Commande::class, 'client_id');
